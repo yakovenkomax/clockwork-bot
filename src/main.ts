@@ -1,9 +1,12 @@
 import * as process from 'process';
 import { Telegraf } from 'telegraf';
 import { readJson } from 'utils/readJson';
+import { writeJson } from 'utils/writeJson';
 import { message } from 'telegraf/filters';
 import { scheduleDailyCall } from 'scheduleDailyCall';
-import { History, Translations } from 'types/files.types';
+import { formatMessage } from 'formatMessage';
+import { pickTranslations } from 'pickTranslations';
+import { History, Translations } from 'types/files.type';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
@@ -25,7 +28,22 @@ bot.on(message('text'), async (ctx) => {
 
   if (ctx.message.text === '/start') {
     getTimeoutId = scheduleDailyCall(async () => {
-      await ctx.telegram.sendMessage(TELEGRAM_CHAT_ID, `Hello world!`)
+      const pickedTranslations = pickTranslations(translations);
+      const message = formatMessage(pickedTranslations);
+
+      await ctx.telegram.sendMessage(TELEGRAM_CHAT_ID, {
+        text: message,
+        // @ts-ignore
+        parse_mode: 'MarkdownV2',
+        disable_web_page_preview: true,
+      });
+
+      history.push({
+        date: new Date().toISOString(),
+        words: Object.keys(pickedTranslations),
+      });
+
+      writeJson('data/history.json', history);
     }, MESSAGE_SEND_TIME);
 
     await ctx.reply(`A message is scheduled to be sent at ${MESSAGE_SEND_TIME} every day.`);
