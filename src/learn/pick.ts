@@ -1,32 +1,16 @@
-import { Log } from 'types';
-import { requestChat } from 'openaiApi';
+import { Dictionary, Log } from 'types';
+import { readJson } from '../utils/readJson';
 
 const WORDS_COUNT = 3;
 const LOG_ENTRIES_BLACKLIST = 120;
 
-const exampleOutput = {
-  'words': ['huis', 'zeggen', 'kind'],
-};
-
-export const pick = async (log: Log) => {
+export const pick = async () => {
+  const log: Log = readJson('data/log.json');
+  const dictionary: Dictionary = readJson('data/dictionary.json');
   const wordBlacklist = log.slice(-LOG_ENTRIES_BLACKLIST).map((entry) => Object.keys(entry.words)).flat();
-  const response = await requestChat<{ words: string[] }>([
-    {
-      role: 'user',
-      content: `Return a JSON containing a single key "words"
-        with an array of random ${WORDS_COUNT} words from the 3000 most common used Dutch words,
-        do not use the following words: ${wordBlacklist.join(', ')}.
-      `,
-    },
-    {
-      role: 'system',
-      content: JSON.stringify(exampleOutput, null, 2),
-    },
-    {
-      role: 'user',
-      content: 'Return next batch of words.',
-    },
-  ]);
+  const wordsWhiteList = Object.keys(dictionary).filter((word) => !wordBlacklist.includes(word));
+  const pickedWords = wordsWhiteList.sort(() => 0.5 - Math.random()).slice(0, WORDS_COUNT);
+  const pickedDictionary = pickedWords.reduce((acc, word) => ({ ...acc, [word]: dictionary[word] }), {} as Dictionary);
 
-  return response?.words;
+  return pickedDictionary;
 };

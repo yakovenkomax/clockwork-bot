@@ -6,47 +6,41 @@ import { writeJson } from 'utils/writeJson';
 import { scheduleDailyCall } from 'utils/scheduleDailyCall';
 import { pick as pickLearn } from 'learn/pick';
 import { pick as pickRepeat } from 'repeat/pick';
-import { translate } from 'learn/translate';
+import { enhance } from 'learn/enhance';
 import { format as formatLearn } from 'learn/format';
 import { format as formatRepeat } from 'repeat/format';
 import { getImage } from 'learn/getImage';
-import { Log } from 'types';
+import { SendMessageParams } from 'types';
 
-type SendMessageParams = { message: string; image: string, usedWords: Record<string, string> };
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const MESSAGE_SEND_TIME = process.env.MESSAGE_SEND_TIME || '';
 
-let log: Log;
-
 try {
-  log = readJson('data/log.json');
+  readJson('data/log.json');
 } catch (e) {
-  log = [];
+  writeJson('data/log.json', []);
 }
 
-const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
+const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN || '');
 
 bot.on(message('text'), async (ctx) => {
   let getMessageSendTimeoutId: (() => number) | undefined = undefined;
 
   const generateMessage = async () => {
-    const learnWords = log.length > 0 ? await pickLearn(log) : ['ik', 'ben', 'een', 'appel'];
-    const learnDictionary = await translate(learnWords);
-    const learnMessage = formatLearn(learnDictionary);
-    const learnImage = await getImage(learnDictionary);
+    const learnDictionary = await pickLearn();
+    const learnEnhancedDictionary = await enhance(learnDictionary);
+    const learnMessage = formatLearn(learnEnhancedDictionary);
+    const learnImage = await getImage(learnEnhancedDictionary);
 
-    const repeatRecord = pickRepeat(log);
+    const repeatRecord = await pickRepeat();
     const repeatMessage = formatRepeat(repeatRecord);
 
     const message = [learnMessage, repeatMessage].filter(Boolean).join('\n\n\n');
 
     ctx.replyWithPhoto(learnImage, { caption: message, parse_mode: 'MarkdownV2' });
 
-    const usedWords = learnDictionary.reduce((acc, { word, translations }) => ({
+    const usedWords = Object.keys(learnDictionary).reduce((acc, word) => ({
       ...acc,
-      ...(acc[word] ? {} : { [word]: translations[0] }),
+      ...(acc[word] ? {} : { [word]: learnDictionary[word][0].translations[0] }),
     }), {} as Record<string, string>);
 
     return { message, image: learnImage, usedWords };
@@ -55,7 +49,12 @@ bot.on(message('text'), async (ctx) => {
   const sendMessage = async (messageParams: SendMessageParams) => {
     const { message, image, usedWords } = messageParams;
 
-    await ctx.telegram.sendPhoto(TELEGRAM_CHAT_ID, image, { caption: message, parse_mode: 'MarkdownV2' });
+    await ctx.telegram.sendPhoto(process.env.TELEGRAM_CHAT_ID || '', image, {
+      caption: message,
+      parse_mode: 'MarkdownV2',
+    });
+
+    const log = readJson('data/log.json');
 
     log.push({ timestamp: new Date().toISOString(), words: usedWords });
 

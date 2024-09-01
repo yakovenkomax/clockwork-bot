@@ -1,9 +1,4 @@
-export enum NounGender {
-  MALE = 'm',
-  FEMALE = 'f',
-  NEUTER = 'n',
-  PLURAL = 'pl',
-}
+export type SendMessageParams = { message: string; image: string, usedWords: Record<string, string> };
 
 export type Log = {
   timestamp: string;
@@ -11,11 +6,12 @@ export type Log = {
 }[];
 
 export type Dictionary = {
-  word: string;
-  translations: string[];
-  sentenceNL: string;
-  sentenceEN: string;
-  article?: string;
-  gender?: NounGender;
-  irregularForms?: string[];
-}[];
+  [word: string]: {
+    partOfSpeech: string;
+    translations: string[];
+    irregularForms?: string[];
+    article?: string;
+    sentenceNL?: string;
+    sentenceEN?: string;
+  }[];
+};
