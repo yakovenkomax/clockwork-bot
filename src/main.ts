@@ -27,37 +27,51 @@ try {
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 
 bot.on(message('text'), async (ctx) => {
-  let getTimeoutId: (() => number) | undefined = undefined;
+  let getMessageSendTimeoutId: (() => number) | undefined = undefined;
+
+  const getMessageParams = () => {
+    const learnTranslations = pickLearnTranslations(translations, history);
+    const learnMessage = formatLearnMessage(learnTranslations);
+    const repeatTranslations = pickRepeatTranslations(translations, history);
+    const repeatMessage = formatRepeatMessage(repeatTranslations);
+    const usedWords = Object.keys(learnTranslations);
+    const message = escape([learnMessage, repeatMessage].join('\n\n\n'));
+
+    ctx.reply({
+      text: `*Next message to be dispatched at ${MESSAGE_SEND_TIME}:*\n\n${message}`,
+      // @ts-ignore
+      parse_mode: 'MarkdownV2',
+      disable_web_page_preview: true,
+    });
+
+    return { message, usedWords };
+  };
+
+  const sendMessage = async (messageParams: { message: string; usedWords: string[] }) => {
+    const { message, usedWords } = messageParams;
+
+    await ctx.telegram.sendMessage(TELEGRAM_CHAT_ID, {
+      text: message,
+      // @ts-ignore
+      parse_mode: 'MarkdownV2',
+      disable_web_page_preview: true,
+    });
+
+    history.push({ date: new Date().toISOString(), words: usedWords });
+
+    writeJson('data/history.json', history);
+  };
 
   if (ctx.message.text === '/start') {
-    getTimeoutId = scheduleDailyCall(async () => {
-      const learnTranslations = pickLearnTranslations(translations, history);
-      const learnMessage = formatLearnMessage(learnTranslations);
-      const repeatTranslations = pickRepeatTranslations(translations, history);
-      const repeatMessage = formatRepeatMessage(repeatTranslations);
-      const message = escape([learnMessage, repeatMessage].join('\n\n\n'));
-
-      await ctx.telegram.sendMessage(TELEGRAM_CHAT_ID, {
-        text: message,
-        // @ts-ignore
-        parse_mode: 'MarkdownV2',
-        disable_web_page_preview: true,
-      });
-
-      history.push({
-        date: new Date().toISOString(),
-        words: Object.keys(learnTranslations),
-      });
-
-      writeJson('data/history.json', history);
-    }, MESSAGE_SEND_TIME);
-
-    await ctx.reply(`A message is scheduled to be sent at ${MESSAGE_SEND_TIME} every day.`);
+    getMessageSendTimeoutId = scheduleDailyCall<{
+      message: string;
+      usedWords: string[]
+    }>(sendMessage, getMessageParams, MESSAGE_SEND_TIME);
   }
 
   if (ctx.message.text === '/stop') {
-    if (getTimeoutId) {
-      clearTimeout(getTimeoutId());
+    if (getMessageSendTimeoutId) {
+      clearTimeout(getMessageSendTimeoutId());
 
       await ctx.reply('The scheduled message has been stopped.');
     } else {
