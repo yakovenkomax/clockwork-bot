@@ -1,7 +1,7 @@
 import { History, Translations } from 'types/files.type';
 import { shuffle } from 'utils/shuffle';
 
-const PICKED_WORDS_COUNT = 4;
+const PICKED_WORDS_COUNT = 3;
 const HISTORY_ENTRIES_BLACKLIST = 2;
 
 export const pickLearnTranslations = (translations: Translations, history: History) => {
@@ -12,8 +12,8 @@ export const pickLearnTranslations = (translations: Translations, history: Histo
   const learnTranslations = randomWords.reduce((acc, word) => {
     acc[word] = translations[word];
 
-    return acc
+    return acc;
   }, {} as Translations);
 
   return learnTranslations;
-}
+};
