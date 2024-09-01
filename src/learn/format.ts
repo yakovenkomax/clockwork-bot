@@ -15,7 +15,8 @@ export const format = (dictionary: Dictionary) => {
       irregularForms,
     } = entry;
     const wordString = `*${getGoogleTranslateLink(word)}*`;
-    const articleGenderSting = article && escape(`(${[article, gender].join(', ')})`);
+    const nonNeuterGender = gender !== 'n' ? gender : undefined;
+    const articleGenderSting = article && escape(`_(${[article, nonNeuterGender].filter(Boolean).join(', ')})_`);
     const translationsString = `– ${translations.join(', ')}`;
 
     const mainLine = [wordString, articleGenderSting, translationsString].filter(Boolean).join(' ');
