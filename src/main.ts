@@ -12,6 +12,8 @@ import { format as formatRepeat } from 'repeat/format';
 import { getImage } from 'learn/getImage';
 import { Log } from 'types';
 
+type SendMessageParams = { message: string; image: string, usedWords: Record<string, string> };
+
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const MESSAGE_SEND_TIME = process.env.MESSAGE_SEND_TIME || '';
@@ -29,7 +31,7 @@ const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 bot.on(message('text'), async (ctx) => {
   let getMessageSendTimeoutId: (() => number) | undefined = undefined;
 
-  const getMessageParams = async () => {
+  const generateMessage = async () => {
     const learnWords = log.length > 0 ? await pickLearn(log) : ['ik', 'ben', 'een', 'appel'];
     const learnDictionary = await translate(learnWords);
     const learnMessage = formatLearn(learnDictionary);
@@ -40,33 +42,20 @@ bot.on(message('text'), async (ctx) => {
 
     const message = [learnMessage, repeatMessage].filter(Boolean).join('\n\n\n');
 
-    ctx.replyWithPhoto(learnImage, {
-      caption: `*Next message to be dispatched at ${MESSAGE_SEND_TIME}:*\n\n${message}`,
-      parse_mode: 'MarkdownV2',
-    });
+    ctx.replyWithPhoto(learnImage, { caption: message, parse_mode: 'MarkdownV2' });
 
-    const usedWords = learnDictionary.reduce((acc, entry) => {
-      if (acc[entry.word]) {
-        return acc;
-      }
-
-      acc[entry.word] = entry.translations[0];
-
-      return acc;
-    }, {} as Record<string, string>);
+    const usedWords = learnDictionary.reduce((acc, { word, translations }) => ({
+      ...acc,
+      ...(acc[word] ? {} : { [word]: translations[0] }),
+    }), {} as Record<string, string>);
 
     return { message, image: learnImage, usedWords };
   };
 
-  type SendMessageParams = { message: string; image: string, usedWords: Record<string, string> };
-
   const sendMessage = async (messageParams: SendMessageParams) => {
     const { message, image, usedWords } = messageParams;
 
-    await ctx.telegram.sendPhoto(TELEGRAM_CHAT_ID, image, {
-      caption: message,
-      parse_mode: 'MarkdownV2',
-    });
+    await ctx.telegram.sendPhoto(TELEGRAM_CHAT_ID, image, { caption: message, parse_mode: 'MarkdownV2' });
 
     log.push({ timestamp: new Date().toISOString(), words: usedWords });
 
@@ -74,7 +63,9 @@ bot.on(message('text'), async (ctx) => {
   };
 
   if (ctx.message.text === '/start') {
-    getMessageSendTimeoutId = await scheduleDailyCall<SendMessageParams>(sendMessage, getMessageParams, MESSAGE_SEND_TIME);
+    await ctx.reply(`Generating the next message to be dispatched at ${MESSAGE_SEND_TIME}:\n\n`);
+
+    getMessageSendTimeoutId = await scheduleDailyCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
   }
 
   if (ctx.message.text === '/stop') {
@@ -84,6 +75,18 @@ bot.on(message('text'), async (ctx) => {
       await ctx.reply('The scheduled message has been stopped.');
     } else {
       await ctx.reply('There is no scheduled message to stop.');
+    }
+  }
+
+  if (ctx.message.text === '/restart') {
+    if (getMessageSendTimeoutId) {
+      clearTimeout(getMessageSendTimeoutId());
+
+      ctx.reply(`Generating the next message to be dispatched at ${MESSAGE_SEND_TIME}:\n\n`);
+
+      getMessageSendTimeoutId = await scheduleDailyCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
+    } else {
+      await ctx.reply('There is no message to regenerate.');
     }
   }
 });
