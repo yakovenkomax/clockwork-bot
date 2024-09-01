@@ -58,10 +58,14 @@ export const translate = async (words: string[]) => {
         If the word can be multiple parts of speech, add multiple translation objects with the same word,
         each representing a different part of speech and corresponding translations.
         
+        If the word is a noun, the translation object must contain "article" property
+        with the definitive Dutch article "het" or "de" used with this word.
+        
         If the word is a noun that can be used with both "de" and "het" articles (e.g. "pad"),
         add two objects with this word, each representing the word with a different article and corresponding translations.
         
-        If the word is a noun, add the "gender" property with the shortened gender of the noun: "m", "f", "n" or "pl" (for plural).
+        If the word is a noun, the translation object must contain "gender" property
+        with the shortened gender of the noun: "m" for male, "f" for female, "n" for neuter, or "pl" for plural.
         
         If the word is an verb that has irregular "simple past singular" and "past participle" forms, add the "verbForms" property
         with an array with "simple past singular" and "past participle" verb forms.
@@ -74,8 +78,8 @@ export const translate = async (words: string[]) => {
           sentenceNL: string; // Example sentence in Dutch
           sentenceEN: string; // English translation of the example sentence
           verbForms?: string[]; // Irregular verb forms (for irregular verbs only)
-          article?: string; // Definitive Dutch article (for nouns only)
-          gender?: string; // Shortened gender ("m", "f", "n", or "pl" for plural) (for nouns only)
+          article?: string; // Definitive Dutch article used with this word (for nouns only)
+          gender?: string; // Gender of the word: "m" for male, "f" for female, "n" for neuter, or "pl" for plural (for nouns only)
         }
         
         List of Dutch words:
