@@ -22,9 +22,9 @@ try {
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN || '');
 
-bot.on(message('text'), async (ctx) => {
-  let getMessageSendTimeoutId: (() => number) | undefined = undefined;
+let getMessageSendTimeoutId: (() => number) | undefined = undefined;
 
+bot.on(message('text'), async (ctx) => {
   const generateMessage = async () => {
     const learnDictionary = await pickLearn();
     const learnEnhancedDictionary = await enhance(learnDictionary);
