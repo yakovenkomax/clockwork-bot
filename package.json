@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/yakovenkomax/clockwork-bot#readme",
   "dependencies": {
+    "openai": "^4.28.4",
     "telegraf": "^4.15.3",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"

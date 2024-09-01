@@ -1,27 +1,26 @@
 import * as process from 'process';
 import { Telegraf } from 'telegraf';
+import { message } from 'telegraf/filters';
 import { readJson } from 'utils/readJson';
 import { writeJson } from 'utils/writeJson';
-import { escape } from 'utils/escape';
-import { message } from 'telegraf/filters';
-import { scheduleDailyCall } from 'scheduleDailyCall';
-import { pickLearnTranslations } from 'pickLearnTranslations';
-import { formatLearnMessage } from 'formatLearnMessage';
-import { pickRepeatTranslations } from 'pickRepeatTranslations';
-import { formatRepeatMessage } from 'formatRepeatMessage';
-import { History, Dictionary } from 'types/files.type';
+import { scheduleDailyCall } from 'utils/scheduleDailyCall';
+import { pick as pickLearn } from 'learn/pick';
+import { pick as pickRepeat } from 'repeat/pick';
+import { translate } from 'learn/translate';
+import { format as formatLearn } from 'learn/format';
+import { format as formatRepeat } from 'repeat/format';
+import { Log } from 'types';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
-const MESSAGE_SEND_TIME = '09:00';
+const MESSAGE_SEND_TIME = process.env.MESSAGE_SEND_TIME || '';
 
-let history: History;
-const translations: Dictionary = readJson('data/translations.json');
+let log: Log;
 
 try {
-  history = readJson('data/history.json');
+  log = readJson('data/log.json');
 } catch (e) {
-  history = [];
+  log = [];
 }
 
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
@@ -29,13 +28,15 @@ const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 bot.on(message('text'), async (ctx) => {
   let getMessageSendTimeoutId: (() => number) | undefined = undefined;
 
-  const getMessageParams = () => {
-    const learnTranslations = pickLearnTranslations(translations, history);
-    const learnMessage = formatLearnMessage(learnTranslations);
-    const repeatTranslations = pickRepeatTranslations(translations, history);
-    const repeatMessage = formatRepeatMessage(repeatTranslations);
-    const usedWords = Object.keys(learnTranslations);
-    const message = escape([learnMessage, repeatMessage].join('\n\n\n'));
+  const getMessageParams = async () => {
+    const learnWords = await pickLearn(log);
+    const learnDictionary = await translate(learnWords);
+    const learnMessage = formatLearn(learnDictionary);
+
+    const repeatRecord = pickRepeat(log);
+    const repeatMessage = formatRepeat(repeatRecord);
+
+    const message = [learnMessage, repeatMessage].filter(Boolean).join('\n\n\n');
 
     ctx.reply({
       text: `*Next message to be dispatched at ${MESSAGE_SEND_TIME}:*\n\n${message}`,
@@ -44,10 +45,18 @@ bot.on(message('text'), async (ctx) => {
       disable_web_page_preview: true,
     });
 
+    const usedWords = Object.keys(learnDictionary).reduce((acc, word) => {
+      acc[word] = learnDictionary[word][0].translations[0];
+
+      return acc;
+    }, {} as Record<string, string>);
+
     return { message, usedWords };
   };
 
-  const sendMessage = async (messageParams: { message: string; usedWords: string[] }) => {
+  type SendMessageParams = { message: string; usedWords: Record<string, string> };
+
+  const sendMessage = async (messageParams: SendMessageParams) => {
     const { message, usedWords } = messageParams;
 
     await ctx.telegram.sendMessage(TELEGRAM_CHAT_ID, {
@@ -57,16 +66,13 @@ bot.on(message('text'), async (ctx) => {
       disable_web_page_preview: true,
     });
 
-    history.push({ date: new Date().toISOString(), words: usedWords });
+    log.push({ timestamp: new Date().toISOString(), words: usedWords });
 
-    writeJson('data/history.json', history);
+    writeJson('data/log.json', log);
   };
 
   if (ctx.message.text === '/start') {
-    getMessageSendTimeoutId = scheduleDailyCall<{
-      message: string;
-      usedWords: string[]
-    }>(sendMessage, getMessageParams, MESSAGE_SEND_TIME);
+    getMessageSendTimeoutId = await scheduleDailyCall<SendMessageParams>(sendMessage, getMessageParams, MESSAGE_SEND_TIME);
   }
 
   if (ctx.message.text === '/stop') {
