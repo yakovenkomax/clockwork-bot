@@ -9,14 +9,14 @@ import { pickLearnTranslations } from 'pickLearnTranslations';
 import { formatLearnMessage } from 'formatLearnMessage';
 import { pickRepeatTranslations } from 'pickRepeatTranslations';
 import { formatRepeatMessage } from 'formatRepeatMessage';
-import { History, Translations } from 'types/files.type';
+import { History, Dictionary } from 'types/files.type';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const MESSAGE_SEND_TIME = '09:00';
 
 let history: History;
-const translations: Translations = readJson('data/translations.json');
+const translations: Dictionary = readJson('data/translations.json');
 
 try {
   history = readJson('data/history.json');

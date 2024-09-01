@@ -18,6 +18,6 @@ export type Translation = {
   partsOfSpeech?: TranslationsByPartOfSpeech;
 };
 
-export type Translations = {
+export type Dictionary = {
   [word: string]: Translation;
 }

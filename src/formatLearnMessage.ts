@@ -1,4 +1,4 @@
-import { Translations } from 'types/files.type';
+import { Dictionary } from 'types/files.type';
 import { Frequency, FrequencyWeight, PartOfSpeech, PartOfSpeechAbbreviation } from 'types/enums.type';
 
 const getGoogleTranslateLink = (word: string) => {
@@ -11,7 +11,7 @@ const getPartOfSpeechLine = (partOfSpeech: PartOfSpeech, translationWords: Array
   return `  _${PartOfSpeechAbbreviation[partOfSpeech]}._  ${translationWords.join(', ')}`;
 };
 
-export const formatLearnMessage = (translations: Translations) => {
+export const formatLearnMessage = (translations: Dictionary) => {
   const learnMessage = Object.keys(translations).map(word => {
     const currentWordTranslation = translations[word];
     const mainLine = getMainLine(word, currentWordTranslation.main);
@@ -54,4 +54,4 @@ export const formatLearnMessage = (translations: Translations) => {
   }).join('\n\n');
 
   return learnMessage;
-}
+};

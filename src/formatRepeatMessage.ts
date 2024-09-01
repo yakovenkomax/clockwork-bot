@@ -1,4 +1,4 @@
-import { Translations } from 'types/files.type';
+import { Dictionary } from 'types/files.type';
 
 const SPOILER_LENGTH = 18;
 const PAD_STRING = '・';
@@ -10,14 +10,14 @@ const padToLength = (word: string, length: number) => {
   const extraSymbols = PAD_STRING.repeat(padWidth);
 
   return `${word}${extraSymbols}`;
-}
+};
 
 const getRepeatLine = (word: string, mainTranslation: string) => {
   return `*${mainTranslation}* – ||${padToLength(word, SPOILER_LENGTH)}||`;
 };
 
-export const formatRepeatMessage = (translations: Translations) => {
+export const formatRepeatMessage = (translations: Dictionary) => {
   const repeatLines = Object.keys(translations).map(word => getRepeatLine(word, translations[word].main));
 
   return repeatLines.join('\n\n');
-}
+};
