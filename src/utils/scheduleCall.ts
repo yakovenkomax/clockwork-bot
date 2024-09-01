@@ -6,8 +6,15 @@ export const scheduleCall = (callback: Function, time: string) => {
     currentDate.getMonth(),
     currentDate.getDate(),
     hours,
-    minutes
+    minutes,
   );
+
+  const timeZoneOffset = currentDate.getTimezoneOffset();
+
+  if (timeZoneOffset !== 0) {
+    currentDate.setMinutes(currentDate.getMinutes() - timeZoneOffset);
+    scheduledDate.setMinutes(scheduledDate.getMinutes() - timeZoneOffset);
+  }
 
   if (scheduledDate <= currentDate) {
     scheduledDate.setDate(currentDate.getDate() + 1);
@@ -18,4 +25,4 @@ export const scheduleCall = (callback: Function, time: string) => {
   const timeoutId = setTimeout(callback, timeDifference);
 
   return timeoutId;
-}
+};
