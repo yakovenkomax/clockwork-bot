@@ -1,99 +1,96 @@
 import { requestGPT } from 'requestGPT';
-import { Dictionary, PartOfSpeech } from 'types';
+import { Dictionary, NounGender } from 'types';
 
-const exampleInput = ['pad', 'kopen', 'kloppen', 'zijn'];
-const exampleOutput: Dictionary = {
-  'pad': [
+const exampleInput = ['pad', 'kopen', 'werken', 'zijn'];
+const exampleOutput: Dictionary = [
+  {
+    'word': 'pad',
+    'translations': ['path', 'way'],
+    'article': 'het',
+    'sentenceNL': 'Het pad is lang en moeilijk.',
+    'sentenceEN': 'The path is long and hard.',
+  },
+  {
+    'word': 'pad',
+    'translations': ['toad'],
+    'article': 'de',
+    'sentenceNL': 'De groene pad springt naar mij.',
+    'sentenceEN': 'The green toad jumps to me.',
+  },
+  {
+    'word': 'kopen',
+    'translations': ['to buy', 'to purchase'],
+    'irregularForms': ['kocht', 'gekocht'],
+    'sentenceNL': 'Ik koop een nieuwe auto.',
+    'sentenceEN': 'I am buying a new car.',
+  },
+  {
+    'word': 'werken',
+    'translations': ['to work'],
+    'sentenceNL': 'Ik werk in een restaurant.',
+    'sentenceEN': 'I work in a restaurant.',
+  },
+  {
+    'word': 'zijn',
+    'translations': ['to be'],
+    'irregularForms': ['was', 'geweest'],
+    'sentenceNL': 'Zij zijn mijn vrienden.',
+    'sentenceEN': 'They are my friends.',
+  },
+  {
+    'word': 'zijn',
+    'translations': ['his'],
+    'sentenceNL': 'Zijn huis is heel groot.',
+    'sentenceEN': 'His house is very big.',
+  },
+];
+
+export const translate = async (words: string[]) => {
+  const genderList = Object.values(NounGender).map(gender => `"${gender}"`);
+
+  const response = await requestGPT<{ dictionary: Dictionary }>([
     {
-      'partOfSpeech': PartOfSpeech.NOUN,
-      'translations': ['path', 'way'],
-      'article': 'het',
-      'sentenceNL': 'Het pad is lang en moeilijk.',
-      'sentenceEN': 'The path is long and hard.',
+      role: 'user',
+      content: `I am creating a Dutch to English vocabulary.
+        
+        I will provide list of Dutch words. Return a JSON object containing a single property "dictionary" with an array of translation objects.
+        
+        If the word can be multiple parts of speech, add multiple translation objects with the same word,
+        each representing a different part of speech and corresponding translations.
+        
+        If the word is a noun that can be used with both "de" and "het" articles (e.g. "pad"),
+        add two objects with this word, each representing the word with a different article and corresponding translations.
+        
+        If the word is a noun, add the "gender" property with the shortened gender of the noun: "m", "f", "n" or "pl" (for plural).
+        
+        If the word is an verb that has irregular "simple past singular" and "past participle" forms, add the "verbForms" property
+        with an array with "simple past singular" and "past participle" verb forms.
+        
+        The structure of each translation object should be:
+        
+        {
+          word: string; // The Dutch word
+          translations: string[]; // Array of English translations for this part of speech
+          sentenceNL: string; // Example sentence in Dutch
+          sentenceEN: string; // English translation of the example sentence
+          verbForms?: string[]; // Irregular verb forms (for irregular verbs only)
+          article?: string; // Definitive Dutch article (for nouns only)
+          gender?: string; // Shortened gender ("m", "f", "n", or "pl" for plural) (for nouns only)
+        }
+        
+        List of Dutch words:
+        ${exampleInput.join(', ')}
+      `,
     },
     {
-      'partOfSpeech': PartOfSpeech.NOUN,
-      'translations': ['toad'],
-      'article': 'de',
-      'sentenceNL': 'De groene pad springt naar mij.',
-      'sentenceEN': 'The green toad jumps to me.',
-    },
-  ],
-  'kopen': [
-    {
-      'partOfSpeech': PartOfSpeech.VERB,
-      'translations': ['to buy', 'to purchase'],
-      'irregularForms': ['kocht', 'gekocht'],
-      'sentenceNL': 'Ik koop een nieuwe auto.',
-      'sentenceEN': 'I am buying a new car.',
-    },
-  ],
-  'kloppen': [
-    {
-      'partOfSpeech': PartOfSpeech.VERB,
-      'translations': ['to knock', 'to beat'],
-      'sentenceNL': 'Ik klop op de eerste deur.',
-      'sentenceEN': 'I knock on the first door.',
-    },
-  ],
-  'zijn': [
-    {
-      'partOfSpeech': PartOfSpeech.VERB,
-      'translations': ['to be'],
-      'irregularForms': ['was', 'geweest'],
-      'sentenceNL': 'Zij zijn mijn vrienden.',
-      'sentenceEN': 'They are my friends.',
+      role: 'system',
+      content: JSON.stringify(exampleOutput, null, 2),
     },
     {
-      'partOfSpeech': PartOfSpeech.PRONOUN,
-      'translations': ['his'],
-      'sentenceNL': 'Zijn huis is heel groot.',
-      'sentenceEN': 'His house is very big.',
+      role: 'user',
+      content: words.join(', '),
     },
-  ],
+  ]);
+
+  return response?.dictionary;
 };
-
-export const translate = async (words: string[]): Promise<Dictionary> => await requestGPT([
-  {
-    role: 'user',
-    content: `In the following messages I will provide Dutch words.
-      Return a JSON object with Dutch to English translations for those words.
-      Output JSON should contain an object with the words as keys.
-      Each word should contain an array of translation objects.
-      Each translation object groups together translations for this word by a part of speech,
-      except for nouns that have different meaning depending on used article (de/het).
-      Translation objects should contain keys: partOfSpeech, translations, sentenceNL, sentenceEN.
-      "partOfSpeech" should contain an part of speech of the word in a form of abbreviation from the following list:
-      "adv", "art", "conj", "n", "num", "interj", "prep", "pron", "v".
-      "translations" should contain an array of translations as strings sorted descending by frequency of usage.
-      "sentenceNL" should contain a short sentence in Dutch containing the word.
-      The most common meaning of the word within the current part of speech should be used.
-      "sentenceEN" should contain a translation of the "sentenceNL" to English.
-      If the word is a noun, translation object should also contain "article" key
-      containing the definitive article that is used with it: "de", "het" "de/het".
-      If the word is a noun, translation object should also contain "gender" key
-      containing the gender of the noun (or plural): "m", "f", "n", "pl".
-      If the word is a noun and has different translations depending on the article,
-      they should go into separate translations objects.
-      If the word is an irregular verb, translation object should also contain "irregularForms" key
-      containing an array of two irregular forms of the verb: "simple past singular", "past participle".
-      Translation objects should be sorted descending by frequency of usage of the first of the translations in it.
-    `,
-  },
-  {
-    role: 'system',
-    content: 'Sure, I will return the translations for the words you provide.',
-  },
-  {
-    role: 'user',
-    content: exampleInput.join(', '),
-  },
-  {
-    role: 'system',
-    content: JSON.stringify(exampleOutput, null, 2),
-  },
-  {
-    role: 'user',
-    content: words.join(', '),
-  },
-]);

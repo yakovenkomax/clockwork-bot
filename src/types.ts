@@ -1,17 +1,4 @@
-export enum PartOfSpeech {
-  ADJECTIVE = 'adj',
-  ADVERB = 'adv',
-  ARTICLE = 'art',
-  CONJUNCTION = 'conj',
-  NOUN = 'n',
-  NUMERAL = 'num',
-  INTERJECTION = 'interj',
-  PREPOSITION = 'prep',
-  PRONOUN = 'pron',
-  VERB = 'v',
-}
-
-enum NounGender {
+export enum NounGender {
   MALE = 'm',
   FEMALE = 'f',
   NEUTER = 'n',
@@ -24,13 +11,11 @@ export type Log = {
 }[];
 
 export type Dictionary = {
-  [word: string]: {
-    partOfSpeech: PartOfSpeech;
-    translations: string[];
-    sentenceNL: string;
-    sentenceEN: string;
-    article?: string;
-    gender?: NounGender;
-    irregularForms?: string[];
-  }[];
-}
+  word: string;
+  translations: string[];
+  sentenceNL: string;
+  sentenceEN: string;
+  article?: string;
+  gender?: NounGender;
+  irregularForms?: string[];
+}[];

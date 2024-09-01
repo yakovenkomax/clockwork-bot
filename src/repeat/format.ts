@@ -2,7 +2,7 @@ import { escape } from 'utils/escape';
 
 const SPOILER_LENGTH = 18;
 const PAD_STRING = '・';
-const PAD_TO_REGULAR_CHAR_RATIO = 1.9;
+const PAD_TO_REGULAR_CHAR_RATIO = 2;
 
 const padToLength = (word: string, length: number) => {
   const charsNeeded = Math.max(length - word.length, 0);

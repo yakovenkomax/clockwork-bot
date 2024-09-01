@@ -1,27 +1,33 @@
 import { Dictionary } from 'types';
 import { escape } from '../utils/escape';
 
-const getWoordenlijstLink = (word: string) => `[${word}](${escape('https://www.woordenlijst.org/zoeken/?q=')}${encodeURI(word)})`;
+const getGoogleTranslateLink = (word: string) => `[${word}](${escape(`https://translate.google.com/?sl=nl&tl=en&op=translate&text=${word}`)})`;
 
 export const format = (dictionary: Dictionary) => {
-  return Object.keys(dictionary).map(word => {
-    const articleString = dictionary[word][0].article ? `(${dictionary[word][0].article}) ` : '';
-    const irregularFormsString = dictionary[word][0].irregularForms ? ` / ${dictionary[word][0].irregularForms?.join(' / ')}` : '';
-    const mainLine = `${escape(articleString)}*${getWoordenlijstLink(word)}*${escape(irregularFormsString)}`;
-    const translationLines = dictionary[word].map(translation => {
-      const { partOfSpeech, article, gender, translations } = translation;
-      const genderString = gender && gender !== 'n' ? `(${gender})` : '';
+  return dictionary.map(entry => {
+    const {
+      word,
+      translations,
+      article,
+      gender,
+      sentenceNL,
+      sentenceEN,
+      irregularForms,
+    } = entry;
+    const wordString = `*${getGoogleTranslateLink(word)}*`;
+    const articleGenderSting = article && escape(`(${[article, gender].join(', ')})`);
+    const translationsString = `– ${translations.join(', ')}`;
 
-      return `  _${partOfSpeech}.${genderString}:_  ${translations.join(', ')}`;
-    });
-    const exampleNL = `\n  ${dictionary[word][0].sentenceNL}`;
-    const exampleEN = `  ${dictionary[word][0].sentenceEN}`;
+    const mainLine = [wordString, articleGenderSting, translationsString].filter(Boolean).join(' ');
+    const irregularFormsLine = irregularForms && escape(`  ${word} / ${irregularForms?.join(' / ')}`);
+    const sentenceNLLine = escape(`\n  ${sentenceNL}`);
+    const sentenceENLine = escape(`  ${sentenceEN}`);
 
     return [
       mainLine,
-      ...translationLines.map(escape),
-      escape(exampleNL),
-      escape(exampleEN),
-    ].join('\n');
+      irregularFormsLine,
+      sentenceNLLine,
+      sentenceENLine,
+    ].filter(Boolean).join('\n');
   }).join('\n\n');
 };

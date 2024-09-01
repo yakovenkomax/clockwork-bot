@@ -45,8 +45,12 @@ bot.on(message('text'), async (ctx) => {
       disable_web_page_preview: true,
     });
 
-    const usedWords = Object.keys(learnDictionary).reduce((acc, word) => {
-      acc[word] = learnDictionary[word][0].translations[0];
+    const usedWords = learnDictionary.reduce((acc, entry) => {
+      if (acc[entry.word]) {
+        return acc;
+      }
+
+      acc[entry.word] = entry.translations[0];
 
       return acc;
     }, {} as Record<string, string>);
