@@ -29,7 +29,7 @@ bot.on(message('text'), async (ctx) => {
   let getMessageSendTimeoutId: (() => number) | undefined = undefined;
 
   const getMessageParams = async () => {
-    const learnWords = await pickLearn(log);
+    const learnWords = log.length > 0 ? await pickLearn(log) : ['ik', 'ben', 'een', 'appel'];
     const learnDictionary = await translate(learnWords);
     const learnMessage = formatLearn(learnDictionary);
 
