@@ -9,6 +9,7 @@ import { pick as pickRepeat } from 'repeat/pick';
 import { translate } from 'learn/translate';
 import { format as formatLearn } from 'learn/format';
 import { format as formatRepeat } from 'repeat/format';
+import { getImage } from 'learn/getImage';
 import { Log } from 'types';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
@@ -32,17 +33,16 @@ bot.on(message('text'), async (ctx) => {
     const learnWords = log.length > 0 ? await pickLearn(log) : ['ik', 'ben', 'een', 'appel'];
     const learnDictionary = await translate(learnWords);
     const learnMessage = formatLearn(learnDictionary);
+    const learnImage = await getImage(learnDictionary);
 
     const repeatRecord = pickRepeat(log);
     const repeatMessage = formatRepeat(repeatRecord);
 
     const message = [learnMessage, repeatMessage].filter(Boolean).join('\n\n\n');
 
-    ctx.reply({
-      text: `*Next message to be dispatched at ${MESSAGE_SEND_TIME}:*\n\n${message}`,
-      // @ts-ignore
+    ctx.replyWithPhoto(learnImage, {
+      caption: `*Next message to be dispatched at ${MESSAGE_SEND_TIME}:*\n\n${message}`,
       parse_mode: 'MarkdownV2',
-      disable_web_page_preview: true,
     });
 
     const usedWords = learnDictionary.reduce((acc, entry) => {
@@ -55,19 +55,17 @@ bot.on(message('text'), async (ctx) => {
       return acc;
     }, {} as Record<string, string>);
 
-    return { message, usedWords };
+    return { message, image: learnImage, usedWords };
   };
 
-  type SendMessageParams = { message: string; usedWords: Record<string, string> };
+  type SendMessageParams = { message: string; image: string, usedWords: Record<string, string> };
 
   const sendMessage = async (messageParams: SendMessageParams) => {
-    const { message, usedWords } = messageParams;
+    const { message, image, usedWords } = messageParams;
 
-    await ctx.telegram.sendMessage(TELEGRAM_CHAT_ID, {
-      text: message,
-      // @ts-ignore
+    await ctx.telegram.sendPhoto(TELEGRAM_CHAT_ID, image, {
+      caption: message,
       parse_mode: 'MarkdownV2',
-      disable_web_page_preview: true,
     });
 
     log.push({ timestamp: new Date().toISOString(), words: usedWords });

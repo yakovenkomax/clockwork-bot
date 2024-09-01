@@ -1,5 +1,5 @@
 import { Log } from 'types';
-import { requestGPT } from 'requestGPT';
+import { requestChat } from 'openaiApi';
 
 const WORDS_COUNT = 3;
 const LOG_ENTRIES_BLACKLIST = 120;
@@ -10,7 +10,7 @@ const exampleOutput = {
 
 export const pick = async (log: Log) => {
   const wordBlacklist = log.slice(-LOG_ENTRIES_BLACKLIST).map((entry) => Object.keys(entry.words)).flat();
-  const response = await requestGPT<{ words: string[] }>([
+  const response = await requestChat<{ words: string[] }>([
     {
       role: 'user',
       content: `Return a JSON containing a single key "words"

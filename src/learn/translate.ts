@@ -1,4 +1,4 @@
-import { requestGPT } from 'requestGPT';
+import { requestChat } from 'openaiApi';
 import { Dictionary, NounGender } from 'types';
 
 const exampleInput = ['pad', 'kopen', 'werken', 'zijn'];
@@ -48,7 +48,7 @@ const exampleOutput: Dictionary = [
 export const translate = async (words: string[]) => {
   const genderList = Object.values(NounGender).map(gender => `"${gender}"`);
 
-  const response = await requestGPT<{ dictionary: Dictionary }>([
+  const response = await requestChat<{ dictionary: Dictionary }>([
     {
       role: 'user',
       content: `I am creating a Dutch to English vocabulary.
