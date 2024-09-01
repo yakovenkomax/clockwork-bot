@@ -14,14 +14,15 @@ export enum PartOfSpeech {
   ADVERB = 'adverb',
   CONJUNCTION = 'conjunction',
   PRONOUN = 'pronoun',
-  AUXILIARY_VERB = 'auxiliary verb'
+  AUXILIARY_VERB = 'auxiliary verb',
+  INTERJECTION = 'interjection'
 }
 
 export const FrequencyWeight = {
   [Frequency.COMMON]: 3,
   [Frequency.UNCOMMON]: 2,
   [Frequency.RARE]: 1,
-}
+};
 
 export const PartOfSpeechAbbreviation = {
   [PartOfSpeech.NOUN]: 'n',
@@ -34,4 +35,5 @@ export const PartOfSpeechAbbreviation = {
   [PartOfSpeech.ARTICLE]: 'art',
   [PartOfSpeech.AUXILIARY_VERB]: 'aux',
   [PartOfSpeech.ABBREVIATION]: 'abbr',
-}
+  [PartOfSpeech.INTERJECTION]: 'interj',
+};
