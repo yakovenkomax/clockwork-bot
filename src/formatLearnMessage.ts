@@ -11,10 +11,8 @@ const getPartOfSpeechLine = (partOfSpeech: PartOfSpeech, translationWords: Array
   return `  _${PartOfSpeechAbbreviation[partOfSpeech]}._  ${translationWords.join(', ')}`;
 };
 
-type FormatMessage = (translations: Translations) => string;
-
-export const formatMessage: FormatMessage = (translations): string => {
-  const wordsMessage = Object.keys(translations).map(word => {
+export const formatLearnMessage = (translations: Translations) => {
+  const learnMessage = Object.keys(translations).map(word => {
     const currentWordTranslation = translations[word];
     const mainLine = getMainLine(word, currentWordTranslation.main);
     const partsOfSpeechTranslations = currentWordTranslation.partsOfSpeech;
@@ -55,7 +53,5 @@ export const formatMessage: FormatMessage = (translations): string => {
     return [mainLine, ...partsOfSpeechLines].join('\n');
   }).join('\n\n');
 
-  const sanitizedWordsMessage = wordsMessage.replace(/-/g, '\\-').replace(/\./g, '\\.');
-
-  return sanitizedWordsMessage;
+  return learnMessage;
 }

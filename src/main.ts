@@ -2,10 +2,13 @@ import * as process from 'process';
 import { Telegraf } from 'telegraf';
 import { readJson } from 'utils/readJson';
 import { writeJson } from 'utils/writeJson';
+import { escape } from 'utils/escape';
 import { message } from 'telegraf/filters';
 import { scheduleDailyCall } from 'scheduleDailyCall';
-import { formatMessage } from 'formatMessage';
-import { pickTranslations } from 'pickTranslations';
+import { pickLearnTranslations } from 'pickLearnTranslations';
+import { formatLearnMessage } from 'formatLearnMessage';
+import { pickRepeatTranslations } from 'pickRepeatTranslations';
+import { formatRepeatMessage } from 'formatRepeatMessage';
 import { History, Translations } from 'types/files.type';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
@@ -28,8 +31,11 @@ bot.on(message('text'), async (ctx) => {
 
   if (ctx.message.text === '/start') {
     getTimeoutId = scheduleDailyCall(async () => {
-      const pickedTranslations = pickTranslations(translations);
-      const message = formatMessage(pickedTranslations);
+      const learnTranslations = pickLearnTranslations(translations, history);
+      const learnMessage = formatLearnMessage(learnTranslations);
+      const repeatTranslations = pickRepeatTranslations(translations, history);
+      const repeatMessage = formatRepeatMessage(repeatTranslations);
+      const message = escape([learnMessage, repeatMessage].join('\n\n\n'));
 
       await ctx.telegram.sendMessage(TELEGRAM_CHAT_ID, {
         text: message,
@@ -40,7 +46,7 @@ bot.on(message('text'), async (ctx) => {
 
       history.push({
         date: new Date().toISOString(),
-        words: Object.keys(pickedTranslations),
+        words: Object.keys(learnTranslations),
       });
 
       writeJson('data/history.json', history);
