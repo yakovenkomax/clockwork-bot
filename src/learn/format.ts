@@ -28,6 +28,6 @@ export const format = (dictionary: Dictionary) => {
         sentenceNLLine,
         sentenceENLine,
       ].filter(Boolean).join('\n');
-    }).join('\n');
+    }).join('\n\n');
   }).join('\n\n');
 };
