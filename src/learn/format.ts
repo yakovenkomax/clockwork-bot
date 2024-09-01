@@ -15,7 +15,7 @@ export const format = (dictionary: Dictionary) => {
       } = entry;
       const wordString = `*${getGoogleTranslateLink(word)}*`;
       const articleSting = article && escape(`_, ${article}_`);
-      const translationsString = ` – ${translations.join(', ')}`;
+      const translationsString = escape(` – ${translations.join(', ')}`);
 
       const mainLine = [wordString, articleSting, translationsString].filter(Boolean).join('');
       const irregularFormsLine = irregularForms && escape(`  ${word} / ${irregularForms?.join(' / ')}`);
