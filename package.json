@@ -1,0 +1,31 @@
+{
+  "name": "clockwork-bot",
+  "version": "0.1.0",
+  "description": "A Telegram bot for learning foreign words.",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "tsx --env-file=.env src/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/yakovenkomax/clockwork-bot.git"
+  },
+  "keywords": [
+    "typescript",
+    "telegram-bot"
+  ],
+  "author": "Maksim Iakovenko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yakovenkomax/clockwork-bot/issues"
+  },
+  "homepage": "https://github.com/yakovenkomax/clockwork-bot#readme",
+  "dependencies": {
+    "telegraf": "^4.15.3",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17"
+  }
+}
