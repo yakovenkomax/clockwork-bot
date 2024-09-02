@@ -1,1 +1,1 @@
-export const shuffle = (array: any[]) => array.sort(() => Math.random() - 0.5);
+export const shuffle = <T>(array: T[]) => array.sort(() => Math.random() - 0.5);

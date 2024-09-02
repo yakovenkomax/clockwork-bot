@@ -1,20 +1,15 @@
+import { getLocalDate } from 'utils/getLocalDate';
+
 export const scheduleCall = (callback: Function, time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
-  const currentDate = new Date();
-  const scheduledDate = new Date(
+  const currentDate = getLocalDate();
+  const scheduledDate = getLocalDate(new Date(
     currentDate.getFullYear(),
     currentDate.getMonth(),
     currentDate.getDate(),
     hours,
     minutes,
-  );
-
-  const timeZoneOffset = currentDate.getTimezoneOffset();
-
-  if (timeZoneOffset !== 0) {
-    currentDate.setMinutes(currentDate.getMinutes() - timeZoneOffset);
-    scheduledDate.setMinutes(scheduledDate.getMinutes() - timeZoneOffset);
-  }
+  ));
 
   if (scheduledDate <= currentDate) {
     scheduledDate.setDate(currentDate.getDate() + 1);

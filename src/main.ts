@@ -3,7 +3,8 @@ import { Telegraf } from 'telegraf';
 import { message } from 'telegraf/filters';
 import { readJson } from 'utils/readJson';
 import { writeJson } from 'utils/writeJson';
-import { scheduleDailyCall } from 'utils/scheduleDailyCall';
+import { getLocalDate } from 'utils/getLocalDate';
+import { scheduleRecursiveCall } from 'utils/scheduleRecursiveCall';
 import { pick as pickLearn } from 'learn/pick';
 import { pick as pickRepeat } from 'repeat/pick';
 import { enhance } from 'learn/enhance';
@@ -31,7 +32,7 @@ bot.on(message('text'), async (ctx) => {
     const learnMessage = formatLearn(learnEnhancedDictionary);
     const learnImage = await getImage(learnEnhancedDictionary);
 
-    const repeatRecord = await pickRepeat();
+    const repeatRecord = pickRepeat();
     const repeatMessage = formatRepeat(repeatRecord);
 
     const message = [learnMessage, repeatMessage].filter(Boolean).join('\n\n\n');
@@ -55,16 +56,15 @@ bot.on(message('text'), async (ctx) => {
     });
 
     const log = readJson('data/log.json');
+    const timestamp = getLocalDate();
 
-    log.push({ timestamp: new Date().toISOString(), words: usedWords });
+    log.push({ timestamp: timestamp.toISOString(), words: usedWords });
 
     writeJson('data/log.json', log);
   };
 
   if (ctx.message.text === '/start') {
-    await ctx.reply(`Generating the next message to be dispatched at ${MESSAGE_SEND_TIME}:\n\n`);
-
-    getMessageSendTimeoutId = await scheduleDailyCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
+    getMessageSendTimeoutId = await scheduleRecursiveCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
   }
 
   if (ctx.message.text === '/stop') {
@@ -81,9 +81,7 @@ bot.on(message('text'), async (ctx) => {
     if (getMessageSendTimeoutId) {
       clearTimeout(getMessageSendTimeoutId());
 
-      ctx.reply(`Generating the next message to be dispatched at ${MESSAGE_SEND_TIME}:\n\n`);
-
-      getMessageSendTimeoutId = await scheduleDailyCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
+      getMessageSendTimeoutId = await scheduleRecursiveCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
     } else {
       await ctx.reply('There is no message to regenerate.');
     }
