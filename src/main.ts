@@ -44,6 +44,8 @@ bot.on(message('text'), async (ctx) => {
       ...(acc[word] ? {} : { [word]: learnDictionary[word][0].translations[0] }),
     }), {} as Record<string, string>);
 
+    console.log(`Generated a message with words: ${Object.keys(learnDictionary).join(', ')}.`);
+
     return { message, image: learnImage, usedWords };
   };
 
@@ -61,13 +63,17 @@ bot.on(message('text'), async (ctx) => {
     log.push({ timestamp: timestamp.toISOString(), words: usedWords });
 
     writeJson('data/log.json', log);
+
+    console.log(`✅ Message sent at: ${timestamp}.\n`);
   };
 
   if (ctx.message.text === '/start') {
+    console.log('"/start" command received.');
     getMessageSendTimeoutId = await scheduleRecursiveCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
   }
 
   if (ctx.message.text === '/stop') {
+    console.log('"/stop" command received.');
     if (getMessageSendTimeoutId) {
       clearTimeout(getMessageSendTimeoutId());
 
@@ -78,6 +84,7 @@ bot.on(message('text'), async (ctx) => {
   }
 
   if (ctx.message.text === '/restart') {
+    console.log('"/restart" command received.');
     if (getMessageSendTimeoutId) {
       clearTimeout(getMessageSendTimeoutId());
 

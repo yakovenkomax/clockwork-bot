@@ -16,6 +16,10 @@ export const scheduleCall = (callback: Function, time: string) => {
   }
 
   const timeDifference = scheduledDate.getTime() - currentDate.getTime();
+  const hoursDifference = Math.floor((timeDifference / 1000 / 60 / 60) % 24);
+  const minutesDifference = Math.floor((timeDifference / 1000 / 60) % 60);
+
+  console.log('Scheduled in:', hoursDifference, 'hours', minutesDifference, 'minutes.');
 
   const timeoutId = setTimeout(callback, timeDifference);
 
