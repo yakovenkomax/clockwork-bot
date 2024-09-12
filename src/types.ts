@@ -15,3 +15,9 @@ export type Dictionary = {
     sentenceEN?: string;
   }[];
 };
+
+export type MessageData = {
+  message: string;
+  image: string;
+  usedWords: Record<string, string>;
+};

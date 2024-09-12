@@ -1,19 +1,12 @@
+import { schedule, validate, ScheduledTask } from 'node-cron';
 import * as process from 'process';
 import { Telegraf } from 'telegraf';
 import { message } from 'telegraf/filters';
 import { readJson } from 'utils/readJson';
 import { writeJson } from 'utils/writeJson';
 import { getLocalDate } from 'utils/getLocalDate';
-import { scheduleRecursiveCall } from 'utils/scheduleRecursiveCall';
-import { pick as pickLearn } from 'learn/pick';
-import { pick as pickRepeat } from 'repeat/pick';
-import { enhance } from 'learn/enhance';
-import { format as formatLearn } from 'learn/format';
-import { format as formatRepeat } from 'repeat/format';
-import { getImage } from 'learn/getImage';
-import { SendMessageParams } from 'types';
-
-const MESSAGE_SEND_TIME = process.env.MESSAGE_SEND_TIME || '';
+import { MessageData } from 'types';
+import { generateMessage } from 'generateMessage';
 
 try {
   readJson('data/log.json');
@@ -23,72 +16,73 @@ try {
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN || '');
 
-let getMessageSendTimeoutId: (() => number) | undefined = undefined;
+let messageData: MessageData | undefined;
+let scheduledTask: ScheduledTask | undefined;
 
 bot.on(message('text'), async (ctx) => {
-  const generateMessage = async () => {
-    const learnDictionary = await pickLearn();
-    const learnEnhancedDictionary = await enhance(learnDictionary);
-    const learnMessage = formatLearn(learnEnhancedDictionary);
-    const learnImage = await getImage(learnEnhancedDictionary);
+  if (ctx.message.text.startsWith('/start')) {
+    const timeString = ctx.message.text.split(' ')[1];
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const cronExpression = `${minutes} ${hours} * * *`;
 
-    const repeatRecord = pickRepeat();
-    const repeatMessage = formatRepeat(repeatRecord);
+    if (validate(cronExpression)) {
+      console.log('"/start" command received with time:', timeString);
 
-    const message = [learnMessage, repeatMessage].filter(Boolean).join('\n\n\n');
+      if (!messageData) {
+        messageData = await generateMessage();
 
-    ctx.replyWithPhoto(learnImage, { caption: message, parse_mode: 'MarkdownV2' });
+        console.log(`Generated a message with words: ${Object.keys(messageData.usedWords)}.`);
+        ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
+      }
 
-    const usedWords = Object.keys(learnDictionary).reduce((acc, word) => ({
-      ...acc,
-      ...(acc[word] ? {} : { [word]: learnDictionary[word][0].translations[0] }),
-    }), {} as Record<string, string>);
+      scheduledTask = schedule(cronExpression, async () => {
+        const timestamp = getLocalDate();
 
-    console.log(`Generated a message with words: ${Object.keys(learnDictionary).join(', ')}.`);
+        if (!messageData) {
+          console.log('⚠️ No message is available for sending, skipping...');
+        } else {
+          await ctx.telegram.sendPhoto(process.env.TELEGRAM_CHAT_ID || '', messageData.image, {
+            caption: messageData.message,
+            parse_mode: 'MarkdownV2',
+          });
 
-    return { message, image: learnImage, usedWords };
-  };
+          console.log(`✅ Message sent at: ${timestamp}.\n`);
 
-  const sendMessage = async (messageParams: SendMessageParams) => {
-    const { message, image, usedWords } = messageParams;
+          const log = readJson('data/log.json');
 
-    await ctx.telegram.sendPhoto(process.env.TELEGRAM_CHAT_ID || '', image, {
-      caption: message,
-      parse_mode: 'MarkdownV2',
-    });
+          log.push({ timestamp: timestamp.toISOString(), words: messageData.usedWords });
 
-    const log = readJson('data/log.json');
-    const timestamp = getLocalDate();
+          writeJson('data/log.json', log);
 
-    log.push({ timestamp: timestamp.toISOString(), words: usedWords });
+          messageData = await generateMessage();
 
-    writeJson('data/log.json', log);
-
-    console.log(`✅ Message sent at: ${timestamp}.\n`);
-  };
-
-  if (ctx.message.text === '/start') {
-    console.log('"/start" command received.');
-    getMessageSendTimeoutId = await scheduleRecursiveCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
+          console.log(`Generated a message with words: ${Object.keys(messageData.usedWords)}.`);
+          ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
+        }
+      });
+    } else {
+      console.log('Incorrect time received in "/start" command:', timeString);
+      ctx.reply('Please provide a valid time in the format "/start HH:MM".');
+    }
   }
 
   if (ctx.message.text === '/stop') {
     console.log('"/stop" command received.');
-    if (getMessageSendTimeoutId) {
-      clearTimeout(getMessageSendTimeoutId());
-
+    if (scheduledTask) {
+      scheduledTask.stop();
       await ctx.reply('The scheduled message has been stopped.');
     } else {
       await ctx.reply('There is no scheduled message to stop.');
     }
   }
 
-  if (ctx.message.text === '/restart') {
-    console.log('"/restart" command received.');
-    if (getMessageSendTimeoutId) {
-      clearTimeout(getMessageSendTimeoutId());
+  if (ctx.message.text === '/regenerate') {
+    console.log('"/regenerate" command received.');
+    if (messageData) {
+      messageData = await generateMessage();
 
-      getMessageSendTimeoutId = await scheduleRecursiveCall<SendMessageParams>(sendMessage, generateMessage, MESSAGE_SEND_TIME);
+      console.log(`Generated a message with words: ${Object.keys(messageData.usedWords)}.`);
+      await ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
     } else {
       await ctx.reply('There is no message to regenerate.');
     }
