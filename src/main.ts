@@ -8,6 +8,7 @@ import { getLocalDate } from 'utils/getLocalDate';
 import { MessageData } from 'types';
 import { generateMessage } from 'generateMessage';
 import { generateLogEntry } from 'generateLogEntry';
+import { getImage } from 'learn/getImage';
 
 try {
   readJson('data/log.json');
@@ -86,6 +87,23 @@ bot.on(message('text'), async (ctx) => {
       await ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
     } else {
       await ctx.reply('There is no message to regenerate.');
+    }
+  }
+
+  if (ctx.message.text === '/replaceImage') {
+    console.log('"/replaceImage" command received.');
+    if (messageData) {
+      const newImage = await getImage(messageData.learnDictionary);
+
+      messageData = {
+        ...messageData,
+        image: newImage,
+      };
+
+      console.log(`Replaced image for the message with words: ${Object.keys(messageData.learnDictionary)}.`);
+      await ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
+    } else {
+      await ctx.reply('There is no message to replace an image.');
     }
   }
 });

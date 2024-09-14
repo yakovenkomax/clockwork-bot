@@ -14,8 +14,7 @@ export const generateMessage = async (): Promise<MessageData> => {
   const repeatRecord = pickRepeat();
   const repeatMessage = formatRepeat(repeatRecord);
 
-  const entryFirstSentences = Object.keys(learnDictionary).map(word => learnDictionary[word][0].sentenceEN);
-  const image = await getImage(entryFirstSentences.join(', '));
+  const image = await getImage(learnDictionary);
 
   const message = [learnMessage, repeatMessage].filter(Boolean).join('\n\n\n');
 
