@@ -22,13 +22,13 @@ let messageData: MessageData | undefined;
 let scheduledTask: ScheduledTask | undefined;
 
 bot.on(message('text'), async (ctx) => {
-  if (ctx.message.text.startsWith('/start')) {
+  if (ctx.message.text.startsWith('/schedule')) {
     const timeString = ctx.message.text.split(' ')[1];
     const [hours, minutes] = timeString.split(':').map(Number);
     const cronExpression = `${minutes} ${hours} * * *`;
 
     if (validate(cronExpression)) {
-      console.log('"/start" command received with time:', timeString);
+      console.log('"/schedule" command received with time:', timeString);
 
       if (!messageData) {
         messageData = await generateMessage();
@@ -63,8 +63,8 @@ bot.on(message('text'), async (ctx) => {
         }
       });
     } else {
-      console.log('Incorrect time received in "/start" command:', timeString);
-      ctx.reply('Please provide a valid time in the format "/start HH:MM".');
+      console.log('Incorrect time received in "/schedule" command:', timeString);
+      ctx.reply('Please provide a valid time in the format "/schedule HH:MM".');
     }
   }
 
