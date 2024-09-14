@@ -4,22 +4,25 @@ import { format as formatLearn } from 'learn/format';
 import { getImage } from 'learn/getImage';
 import { pick as pickRepeat } from 'repeat/pick';
 import { format as formatRepeat } from 'repeat/format';
+import { MessageData } from './types';
 
-export const generateMessage = async () => {
+export const generateMessage = async (): Promise<MessageData> => {
   const learnDictionary = pickLearn();
   const learnEnhancedDictionary = await enhance(learnDictionary);
   const learnMessage = formatLearn(learnEnhancedDictionary);
-  const learnImage = await getImage(learnEnhancedDictionary);
 
   const repeatRecord = pickRepeat();
   const repeatMessage = formatRepeat(repeatRecord);
 
+  const entryFirstSentences = Object.keys(learnDictionary).map(word => learnDictionary[word][0].sentenceEN);
+  const image = await getImage(entryFirstSentences.join(', '));
+
   const message = [learnMessage, repeatMessage].filter(Boolean).join('\n\n\n');
 
-  const usedWords = Object.keys(learnDictionary).reduce((acc, word) => ({
-    ...acc,
-    ...(acc[word] ? {} : { [word]: learnDictionary[word][0].translations[0] }),
-  }), {} as Record<string, string>);
-
-  return { message, image: learnImage, usedWords };
+  return {
+    learnDictionary,
+    repeatRecord,
+    message,
+    image,
+  };
 };

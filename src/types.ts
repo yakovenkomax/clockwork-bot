@@ -1,9 +1,9 @@
-export type SendMessageParams = { message: string; image: string, usedWords: Record<string, string> };
+export type Log = LogEntry[];
 
-export type Log = {
+export type LogEntry = {
   timestamp: string;
   words: Record<string, string>;
-}[];
+}
 
 export type Dictionary = {
   [word: string]: {
@@ -17,7 +17,8 @@ export type Dictionary = {
 };
 
 export type MessageData = {
+  learnDictionary: Dictionary;
+  repeatRecord?: Record<string, string>;
   message: string;
   image: string;
-  usedWords: Record<string, string>;
 };

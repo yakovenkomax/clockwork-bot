@@ -7,6 +7,7 @@ import { writeJson } from 'utils/writeJson';
 import { getLocalDate } from 'utils/getLocalDate';
 import { MessageData } from 'types';
 import { generateMessage } from 'generateMessage';
+import { generateLogEntry } from 'generateLogEntry';
 
 try {
   readJson('data/log.json');
@@ -31,7 +32,7 @@ bot.on(message('text'), async (ctx) => {
       if (!messageData) {
         messageData = await generateMessage();
 
-        console.log(`Generated a message with words: ${Object.keys(messageData.usedWords)}.`);
+        console.log(`Generated a message with words: ${Object.keys(messageData.learnDictionary)}.`);
         ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
       }
 
@@ -50,13 +51,13 @@ bot.on(message('text'), async (ctx) => {
 
           const log = readJson('data/log.json');
 
-          log.push({ timestamp: timestamp.toISOString(), words: messageData.usedWords });
+          log.push(generateLogEntry(timestamp, messageData.learnDictionary));
 
           writeJson('data/log.json', log);
 
           messageData = await generateMessage();
 
-          console.log(`Generated a message with words: ${Object.keys(messageData.usedWords)}.`);
+          console.log(`Generated a message with words: ${Object.keys(messageData.learnDictionary)}.`);
           ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
         }
       });
@@ -81,7 +82,7 @@ bot.on(message('text'), async (ctx) => {
     if (messageData) {
       messageData = await generateMessage();
 
-      console.log(`Generated a message with words: ${Object.keys(messageData.usedWords)}.`);
+      console.log(`Generated a message with words: ${Object.keys(messageData.learnDictionary)}.`);
       await ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
     } else {
       await ctx.reply('There is no message to regenerate.');
