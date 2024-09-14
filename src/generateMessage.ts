@@ -6,7 +6,7 @@ import { pick as pickRepeat } from 'repeat/pick';
 import { format as formatRepeat } from 'repeat/format';
 
 export const generateMessage = async () => {
-  const learnDictionary = await pickLearn();
+  const learnDictionary = pickLearn();
   const learnEnhancedDictionary = await enhance(learnDictionary);
   const learnMessage = formatLearn(learnEnhancedDictionary);
   const learnImage = await getImage(learnEnhancedDictionary);

@@ -4,7 +4,7 @@ import { readJson } from '../utils/readJson';
 const WORDS_COUNT = 3;
 const LOG_ENTRIES_BLACKLIST = 120;
 
-export const pick = async () => {
+export const pick = () => {
   const log: Log = readJson('data/log.json');
   const dictionary: Dictionary = readJson('data/dictionary.json');
   const wordBlacklist = log.slice(-LOG_ENTRIES_BLACKLIST).map((entry) => Object.keys(entry.words)).flat();
