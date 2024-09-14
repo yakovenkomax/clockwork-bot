@@ -1,3 +1,7 @@
+import { Context, NarrowedContext } from 'telegraf';
+import * as tt from 'telegraf/typings/telegram-types';
+import { ScheduledTask } from 'node-cron';
+
 export type Log = LogEntry[];
 
 export type LogEntry = {
@@ -22,3 +26,10 @@ export type MessageData = {
   message: string;
   image: string;
 };
+
+export type BotState = {
+  messageData?: MessageData;
+  scheduledTask?: ScheduledTask;
+};
+
+export type TelegramMessageContext = NarrowedContext<Context, tt.MountMap['text']>

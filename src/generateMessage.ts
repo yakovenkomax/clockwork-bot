@@ -4,7 +4,7 @@ import { format as formatLearn } from 'learn/format';
 import { getImage } from 'learn/getImage';
 import { pick as pickRepeat } from 'repeat/pick';
 import { format as formatRepeat } from 'repeat/format';
-import { MessageData } from './types';
+import { MessageData } from 'types';
 
 export const generateMessage = async (): Promise<MessageData> => {
   const learnDictionary = pickLearn();

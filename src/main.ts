@@ -1,14 +1,13 @@
-import { schedule, validate, ScheduledTask } from 'node-cron';
 import * as process from 'process';
 import { Telegraf } from 'telegraf';
 import { message } from 'telegraf/filters';
 import { readJson } from 'utils/readJson';
 import { writeJson } from 'utils/writeJson';
-import { getLocalDate } from 'utils/getLocalDate';
-import { MessageData } from 'types';
-import { generateMessage } from 'generateMessage';
-import { generateLogEntry } from 'generateLogEntry';
-import { getImage } from 'learn/getImage';
+import { schedule } from 'bot/schedule';
+import { stop } from 'bot/stop';
+import { regenerate } from 'bot/regenerate';
+import { replaceImage } from 'bot/replaceImage';
+import { BotState } from 'types';
 
 try {
   readJson('data/log.json');
@@ -18,93 +17,26 @@ try {
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN || '');
 
-let messageData: MessageData | undefined;
-let scheduledTask: ScheduledTask | undefined;
+const botState: BotState = {
+  messageData: undefined,
+  scheduledTask: undefined,
+};
 
 bot.on(message('text'), async (ctx) => {
   if (ctx.message.text.startsWith('/schedule')) {
-    const timeString = ctx.message.text.split(' ')[1];
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const cronExpression = `${minutes} ${hours} * * *`;
-
-    if (validate(cronExpression)) {
-      console.log('"/schedule" command received with time:', timeString);
-
-      if (!messageData) {
-        messageData = await generateMessage();
-
-        console.log(`Generated a message with words: ${Object.keys(messageData.learnDictionary)}.`);
-        ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
-      }
-
-      scheduledTask = schedule(cronExpression, async () => {
-        const timestamp = getLocalDate();
-
-        if (!messageData) {
-          console.log('⚠️ No message is available for sending, skipping...');
-        } else {
-          await ctx.telegram.sendPhoto(process.env.TELEGRAM_CHAT_ID || '', messageData.image, {
-            caption: messageData.message,
-            parse_mode: 'MarkdownV2',
-          });
-
-          console.log(`✅ Message sent at: ${timestamp}.\n`);
-
-          const log = readJson('data/log.json');
-
-          log.push(generateLogEntry(timestamp, messageData.learnDictionary));
-
-          writeJson('data/log.json', log);
-
-          messageData = await generateMessage();
-
-          console.log(`Generated a message with words: ${Object.keys(messageData.learnDictionary)}.`);
-          ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
-        }
-      });
-    } else {
-      console.log('Incorrect time received in "/schedule" command:', timeString);
-      ctx.reply('Please provide a valid time in the format "/schedule HH:MM".');
-    }
+    await schedule(ctx, botState);
   }
 
   if (ctx.message.text === '/stop') {
-    console.log('"/stop" command received.');
-    if (scheduledTask) {
-      scheduledTask.stop();
-      await ctx.reply('The scheduled message has been stopped.');
-    } else {
-      await ctx.reply('There is no scheduled message to stop.');
-    }
+    await stop(ctx, botState);
   }
 
   if (ctx.message.text === '/regenerate') {
-    console.log('"/regenerate" command received.');
-    if (messageData) {
-      messageData = await generateMessage();
-
-      console.log(`Generated a message with words: ${Object.keys(messageData.learnDictionary)}.`);
-      await ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
-    } else {
-      await ctx.reply('There is no message to regenerate.');
-    }
+    await regenerate(ctx, botState);
   }
 
   if (ctx.message.text === '/replaceImage') {
-    console.log('"/replaceImage" command received.');
-    if (messageData) {
-      const newImage = await getImage(messageData.learnDictionary);
-
-      messageData = {
-        ...messageData,
-        image: newImage,
-      };
-
-      console.log(`Replaced image for the message with words: ${Object.keys(messageData.learnDictionary)}.`);
-      await ctx.replyWithPhoto(messageData.image, { caption: messageData.message, parse_mode: 'MarkdownV2' });
-    } else {
-      await ctx.reply('There is no message to replace an image.');
-    }
+    await replaceImage(ctx, botState);
   }
 });
 
