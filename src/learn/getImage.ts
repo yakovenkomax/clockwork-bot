@@ -3,7 +3,7 @@ import { Dictionary } from 'types';
 
 const weekdayStyleMap = {
   Monday: 'Photorealistic',
-  Tuesday: 'Impressionism',
+  Tuesday: 'Watercolor',
   Wednesday: 'Contemporary',
   Thursday: 'Expressionism',
   Friday: 'Art Nouveau',
@@ -15,9 +15,14 @@ export const getImage = async (dictionary: Dictionary) => {
   const weekDay = new Date().toLocaleString('en-US', { weekday: 'long' }) as keyof typeof weekdayStyleMap;
   const styleOfTheDay = weekdayStyleMap[weekDay];
   const entryFirstSentences = Object.keys(dictionary).map(word => dictionary[word][0].sentenceEN);
-  const description = entryFirstSentences.join(', ');
+  const description = entryFirstSentences.join(' ');
 
-  const prompt = `Create a square image in "${styleOfTheDay}" style, divided into three equal sections. Each section is described by these sentences: ${description}. The image must have a white border around the entire canvas. The image and the border must fit within the square canvas without cropping.`;
+  const mainPart = `Create a square image in "${styleOfTheDay}" style described by these sentences: ${description}.`;
+  const whiteEdgePart = 'The the image must have a thin white edge around it.';
+  const noCrowdsPart = 'The image should not contain any crowds of people unless they are needed to show the described scene.';
+  const noCroppingPart = 'The contents of the image must fit in the square without cropping.';
+
+  const prompt = [mainPart, whiteEdgePart, noCrowdsPart, noCroppingPart].join('');
 
   return requestImage(prompt);
 };
