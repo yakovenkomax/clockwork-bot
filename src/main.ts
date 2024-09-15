@@ -32,11 +32,11 @@ bot.on(message('text'), async (ctx) => {
       await stop(ctx, botState);
       break;
 
-    case ctx.message.text === '/replaceAll':
+    case ctx.message.text === '/replace_all':
       await replaceAll(ctx, botState);
       break;
 
-    case ctx.message.text === '/replaceImage':
+    case ctx.message.text === '/replace_image':
       await replaceImage(ctx, botState);
       break;
 

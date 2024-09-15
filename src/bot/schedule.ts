@@ -8,11 +8,11 @@ import { writeJson } from 'utils/writeJson';
 import { BotState, TelegramMessageContext } from 'types';
 
 export const schedule = async (ctx: TelegramMessageContext, botState: BotState) => {
-  const timeString = ctx.message.text.split(' ')[1];
+  const timeString = ctx.message.text.split('_')[1];
 
   console.log('"/schedule" command received with time:', timeString);
 
-  const [hours, minutes] = timeString.split(':').map(Number);
+  const [hours, minutes] = timeString.match(/\d{2}/g)!.map(Number);
   const cronExpression = `${minutes} ${hours} * * *`;
 
   if (cron.validate(cronExpression)) {
