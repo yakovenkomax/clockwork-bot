@@ -7,9 +7,9 @@ import { format as formatRepeat } from 'repeat/format';
 import { MessageData } from 'types';
 
 export const generateMessage = async (): Promise<MessageData> => {
-  const learnDictionary = pickLearn();
-  const learnEnhancedDictionary = await enhance(learnDictionary);
-  const learnMessage = formatLearn(learnEnhancedDictionary);
+  const learnBaseDictionary = pickLearn();
+  const learnDictionary = await enhance(learnBaseDictionary);
+  const learnMessage = formatLearn(learnDictionary);
 
   const repeatRecord = pickRepeat();
   const repeatMessage = formatRepeat(repeatRecord);
