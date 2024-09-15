@@ -1,5 +1,5 @@
 import { BotState, TelegramMessageContext } from 'types';
-import { getImage } from '../learn/getImage';
+import { getImage } from 'learn/getImage';
 
 export const replaceImage = async (ctx: TelegramMessageContext, botState: BotState) => {
   console.log('"/replaceImage" command received.');

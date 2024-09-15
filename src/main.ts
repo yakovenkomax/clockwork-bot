@@ -5,7 +5,7 @@ import { readJson } from 'utils/readJson';
 import { writeJson } from 'utils/writeJson';
 import { schedule } from 'bot/schedule';
 import { stop } from 'bot/stop';
-import { regenerate } from 'bot/regenerate';
+import { replaceAll } from 'bot/replaceAll';
 import { replaceImage } from 'bot/replaceImage';
 import { BotState } from 'types';
 
@@ -32,8 +32,8 @@ bot.on(message('text'), async (ctx) => {
       await stop(ctx, botState);
       break;
 
-    case ctx.message.text === '/regenerate':
-      await regenerate(ctx, botState);
+    case ctx.message.text === '/replaceAll':
+      await replaceAll(ctx, botState);
       break;
 
     case ctx.message.text === '/replaceImage':

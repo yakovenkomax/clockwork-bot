@@ -1,9 +1,9 @@
 import cron from 'node-cron';
-import { generateMessage } from 'generateMessage';
+import { createMessage } from 'createMessage';
 import { getLocalDate } from 'utils/getLocalDate';
 import process from 'process';
 import { readJson } from 'utils/readJson';
-import { generateLogEntry } from 'generateLogEntry';
+import { createLogEntry } from 'createLogEntry';
 import { writeJson } from 'utils/writeJson';
 import { BotState, TelegramMessageContext } from 'types';
 
@@ -17,7 +17,7 @@ export const schedule = async (ctx: TelegramMessageContext, botState: BotState) 
 
   if (cron.validate(cronExpression)) {
     if (!botState.messageData) {
-      botState.messageData = await generateMessage();
+      botState.messageData = await createMessage();
 
       console.log(`Generated a message with words: ${Object.keys(botState.messageData.learnDictionary)}.`);
       ctx.replyWithPhoto(botState.messageData.image, {
@@ -41,11 +41,11 @@ export const schedule = async (ctx: TelegramMessageContext, botState: BotState) 
 
         const log = readJson('data/log.json');
 
-        log.push(generateLogEntry(timestamp, botState.messageData.learnDictionary));
+        log.push(createLogEntry(timestamp, botState.messageData.learnDictionary));
 
         writeJson('data/log.json', log);
 
-        botState.messageData = await generateMessage();
+        botState.messageData = await createMessage();
 
         console.log(`Generated a message with words: ${Object.keys(botState.messageData.learnDictionary)}.`);
         ctx.replyWithPhoto(botState.messageData.image, {

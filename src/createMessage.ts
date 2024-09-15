@@ -6,7 +6,7 @@ import { pick as pickRepeat } from 'repeat/pick';
 import { format as formatRepeat } from 'repeat/format';
 import { MessageData } from 'types';
 
-export const generateMessage = async (): Promise<MessageData> => {
+export const createMessage = async (): Promise<MessageData> => {
   const learnBaseDictionary = pickLearn();
   const learnDictionary = await enhance(learnBaseDictionary);
   const learnMessage = formatLearn(learnDictionary);
