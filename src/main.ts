@@ -23,20 +23,25 @@ const botState: BotState = {
 };
 
 bot.on(message('text'), async (ctx) => {
-  if (ctx.message.text.startsWith('/schedule')) {
-    await schedule(ctx, botState);
-  }
+  switch (true) {
+    case ctx.message.text.startsWith('/schedule'):
+      await schedule(ctx, botState);
+      break;
 
-  if (ctx.message.text === '/stop') {
-    await stop(ctx, botState);
-  }
+    case ctx.message.text === '/stop':
+      await stop(ctx, botState);
+      break;
 
-  if (ctx.message.text === '/regenerate') {
-    await regenerate(ctx, botState);
-  }
+    case ctx.message.text === '/regenerate':
+      await regenerate(ctx, botState);
+      break;
 
-  if (ctx.message.text === '/replaceImage') {
-    await replaceImage(ctx, botState);
+    case ctx.message.text === '/replaceImage':
+      await replaceImage(ctx, botState);
+      break;
+
+    case ctx.message.text.startsWith('/'):
+      await ctx.reply(`Received an unknown command: "${ctx.message.text}"`);
   }
 });
 
