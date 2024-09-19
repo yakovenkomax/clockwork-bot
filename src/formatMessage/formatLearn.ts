@@ -1,9 +1,9 @@
+import { escape } from 'utils/escape';
 import { Dictionary } from 'types';
-import { escape } from '../utils/escape';
 
 const getGoogleTranslateLink = (word: string) => `[${word}](${escape(`https://translate.google.com/?sl=nl&tl=en&op=translate&text=${word}`)})`;
 
-export const format = (dictionary: Dictionary) => {
+export const formatLearn = (dictionary: Dictionary) => {
   return Object.keys(dictionary).map((word) => {
     return dictionary[word].map((entry) => {
       const {

@@ -19,6 +19,7 @@ const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN || '');
 
 const botState: BotState = {
   messageData: undefined,
+  message: undefined,
   scheduledTask: undefined,
 };
 

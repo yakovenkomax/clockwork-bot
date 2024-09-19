@@ -1,4 +1,5 @@
-import { createMessage } from 'createMessage';
+import { createMessage } from 'createMessage/createMessage';
+import { formatMessage } from 'formatMessage/formatMessage';
 import { BotState, TelegramMessageContext } from 'types';
 
 export const replaceAll = async (ctx: TelegramMessageContext, botState: BotState) => {
@@ -6,10 +7,12 @@ export const replaceAll = async (ctx: TelegramMessageContext, botState: BotState
 
   if (botState.messageData) {
     botState.messageData = await createMessage();
+    botState.message = formatMessage(botState.messageData);
 
     console.log(`Generated a message with words: ${Object.keys(botState.messageData.learnDictionary)}.`);
+
     await ctx.replyWithPhoto(botState.messageData.image, {
-      caption: botState.messageData.message,
+      caption: botState.message,
       parse_mode: 'MarkdownV2',
     });
   } else {

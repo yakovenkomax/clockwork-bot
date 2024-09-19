@@ -12,7 +12,7 @@ const padToLength = (word: string, length: number) => {
   return `${word}${extraSymbols}`;
 };
 
-export const format = (dictionary?: Record<string, string>) => {
+export const formatRepeat = (dictionary?: Record<string, string>) => {
   if (!dictionary) {
     return undefined;
   }

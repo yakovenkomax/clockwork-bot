@@ -23,12 +23,12 @@ export type Dictionary = {
 export type MessageData = {
   learnDictionary: Dictionary;
   repeatRecord?: Record<string, string>;
-  message: string;
   image: string;
 };
 
 export type BotState = {
   messageData?: MessageData;
+  message?: string;
   scheduledTask?: ScheduledTask;
 };
 

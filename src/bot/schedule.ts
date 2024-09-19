@@ -1,10 +1,11 @@
 import cron from 'node-cron';
-import { createMessage } from 'createMessage';
-import { getLocalDate } from 'utils/getLocalDate';
 import process from 'process';
+import { getLocalDate } from 'utils/getLocalDate';
 import { readJson } from 'utils/readJson';
-import { createLogEntry } from 'createLogEntry';
 import { writeJson } from 'utils/writeJson';
+import { createMessage } from 'createMessage/createMessage';
+import { formatMessage } from 'formatMessage/formatMessage';
+import { createLogEntry } from './createLogEntry';
 import { BotState, TelegramMessageContext } from 'types';
 
 export const schedule = async (ctx: TelegramMessageContext, botState: BotState) => {
@@ -18,10 +19,11 @@ export const schedule = async (ctx: TelegramMessageContext, botState: BotState) 
   if (cron.validate(cronExpression)) {
     if (!botState.messageData) {
       botState.messageData = await createMessage();
+      botState.message = formatMessage(botState.messageData);
 
       console.log(`Generated a message with words: ${Object.keys(botState.messageData.learnDictionary)}.`);
       ctx.replyWithPhoto(botState.messageData.image, {
-        caption: botState.messageData.message,
+        caption: botState.message,
         parse_mode: 'MarkdownV2',
       });
     }
@@ -33,7 +35,7 @@ export const schedule = async (ctx: TelegramMessageContext, botState: BotState) 
         console.log('⚠️ No message is available for sending, skipping...');
       } else {
         await ctx.telegram.sendPhoto(process.env.TELEGRAM_CHAT_ID || '', botState.messageData.image, {
-          caption: botState.messageData.message,
+          caption: botState.message,
           parse_mode: 'MarkdownV2',
         });
 
@@ -46,10 +48,11 @@ export const schedule = async (ctx: TelegramMessageContext, botState: BotState) 
         writeJson('data/log.json', log);
 
         botState.messageData = await createMessage();
+        botState.message = formatMessage(botState.messageData);
 
         console.log(`Generated a message with words: ${Object.keys(botState.messageData.learnDictionary)}.`);
         ctx.replyWithPhoto(botState.messageData.image, {
-          caption: botState.messageData.message,
+          caption: botState.message,
           parse_mode: 'MarkdownV2',
         });
       }

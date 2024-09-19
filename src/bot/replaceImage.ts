@@ -1,5 +1,5 @@
 import { BotState, TelegramMessageContext } from 'types';
-import { getImage } from 'learn/getImage';
+import { getImage } from 'createMessage/getImage';
 
 export const replaceImage = async (ctx: TelegramMessageContext, botState: BotState) => {
   console.log('"/replaceImage" command received.');
@@ -13,8 +13,9 @@ export const replaceImage = async (ctx: TelegramMessageContext, botState: BotSta
     };
 
     console.log(`Replaced image for the message with words: ${Object.keys(botState.messageData.learnDictionary)}.`);
+
     await ctx.replyWithPhoto(botState.messageData.image, {
-      caption: botState.messageData.message,
+      caption: botState.message,
       parse_mode: 'MarkdownV2',
     });
   } else {

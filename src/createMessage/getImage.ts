@@ -17,7 +17,7 @@ export const getImage = async (dictionary: Dictionary) => {
   const entryFirstSentences = Object.keys(dictionary).map(word => dictionary[word][0].sentenceEN);
   const description = entryFirstSentences.join(' ');
 
-  const mainPart = `Create a square image in "${styleOfTheDay}" style described by these sentences: ${description}.\n\n`;
+  const mainPart = `Create a square image in "${styleOfTheDay}" style described by these sentences: ${description}\n\n`;
   const noCrowdsPart = 'The image should not contain crowds of people.';
   const noCroppingPart = 'The contents of the image must fit in the square without cropping.';
 
