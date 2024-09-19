@@ -1,4 +1,4 @@
-import { requestImage } from 'openaiApi';
+import { requestImage } from 'utils/openAI';
 import { Dictionary } from 'types';
 
 const weekdayStyleMap = {

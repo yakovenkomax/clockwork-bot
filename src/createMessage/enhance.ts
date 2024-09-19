@@ -1,4 +1,4 @@
-import { requestChat } from 'openaiApi';
+import { requestChat } from 'utils/openAI';
 import { Dictionary } from 'types';
 
 const exampleInput: Dictionary = {
