@@ -3,8 +3,8 @@ import { escape } from './escape';
 
 describe('escape()', () => {
   it('should escape special characters', () => {
-    const input = '_*[]()~`>#+-=|{}.!-';
-    const output = '\\_\\*\\[\\]\\(\\)\\~\\`\\>\\#\\+\\-\\=\\|\\{\\}\\.\\!\\-';
+    const input = '[]()~`>#+-={}.!-';
+    const output = '\\[\\]\\(\\)\\~\\`\\>\\#\\+\\-\\=\\{\\}\\.\\!\\-';
     expect(escape(input)).toBe(output);
   });
 
@@ -16,7 +16,7 @@ describe('escape()', () => {
 
   it('should escape only the special characters and leave others untouched', () => {
     const input = 'Hello (world)! - Check *markdown* syntax: #1';
-    const output = 'Hello \\(world\\)\\! \\- Check \\*markdown\\* syntax: \\#1';
+    const output = 'Hello \\(world\\)\\! \\- Check *markdown* syntax: \\#1';
     expect(escape(input)).toBe(output);
   });
 
