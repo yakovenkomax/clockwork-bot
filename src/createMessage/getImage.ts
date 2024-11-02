@@ -2,11 +2,11 @@ import { requestImage } from 'utils/openAI';
 import { Dictionary } from 'types';
 
 const weekdayStyleMap = {
-  Monday: 'Photorealistic',
-  Tuesday: 'Watercolor',
-  Wednesday: 'Contemporary',
-  Thursday: 'Expressionism',
-  Friday: 'Art Nouveau',
+  Monday: 'Watercolor painting',
+  Tuesday: 'Poster',
+  Wednesday: 'Children\'s book illustration',
+  Thursday: 'Art Nouveau',
+  Friday: 'Expressionism painting',
   Saturday: 'Ukiyo-e',
   Sunday: 'Cartoon/Comic',
 };
@@ -18,7 +18,7 @@ export const getImage = async (dictionary: Dictionary) => {
   const description = entryFirstSentences.join(' ');
 
   const mainPart = `Create a square image in "${styleOfTheDay}" style described by these sentences: ${description}\n\n`;
-  const noCrowdsPart = 'The image should not contain crowds of people.';
+  const noCrowdsPart = 'The image should not have crowds of people in it.';
   const noCroppingPart = 'The contents of the image must fit in the square without cropping.';
 
   const prompt = [mainPart, noCrowdsPart, noCroppingPart].join('');
